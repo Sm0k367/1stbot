@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BotChat - 3D AI Chat</title>
+  <link rel="stylesheet" href="style.css" />
+  
+  <!-- Three.js from CDN (free, reliable, cached globally) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.min.js"></script>
+  
+  <!-- Meta tags for better sharing / PWA feel -->
+  <meta name="description" content="Futuristic 3D chat interface powered by local browser AI (web-llm) – completely free, no API keys." />
+  <meta name="theme-color" content="#0a0014" />
+  <link rel="icon" href="data:,"> <!-- placeholder; add real favicon later if desired -->
+</head>
+<body>
+  <div id="scene-container"></div>
+  
+  <div id="chat-container">
+    <div id="chat-messages"></div>
+    <div id="input-area">
+      <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off" />
+      <button id="send-btn">Send</button>
+    </div>
+    <div id="status">Initializing cosmic interface...</div>
+  </div>
+
+  <!-- Cross-Origin Isolation for SharedArrayBuffer / web-llm -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/coi-serviceworker.js')
+          .then(reg => {
+            console.log('Cross-Origin Isolation Service Worker registered');
+          })
+          .catch(err => {
+            console.error('Service Worker registration failed:', err);
+          });
+      });
+    }
+  </script>
+
+  <!-- Main app logic (ESM module) -->
+  <script type="module" src="main.js"></script>
+
+  <!-- Fallback if JS is disabled -->
+  <noscript>
+    <div style="position: fixed; inset: 0; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 9999;">
+      <div>
+        <h1>JavaScript is required</h1>
+        <p>This is a 3D AI chat experience that needs JavaScript enabled.<br>
+        Please enable JS in your browser settings and refresh the page.</p>
+      </div>
+    </div>
+  </noscript>
+</body>
+</html>
