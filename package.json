@@ -1,0 +1,22 @@
+{
+  "name": "botchat",
+  "version": "1.0.0",
+  "description": "Futuristic 3D AI chat interface with local LLM fallback",
+  "main": "main.js",
+  "scripts": {
+    "start": "serve .",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "three.js",
+    "web-llm",
+    "ai-chat",
+    "3d-interface"
+  ],
+  "author": "sm0k367",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.3"
+  },
+  "dependencies": {}
+}
