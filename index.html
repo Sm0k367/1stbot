@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BotChat - 3D AI Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <title>Smoke Stream Omnibot 🚬💨</title>
   <link rel="stylesheet" href="style.css" />
   
   <!-- Three.js from CDN (free, reliable, cached globally) -->
@@ -15,11 +16,23 @@
   <link rel="icon" href="data:,"> <!-- placeholder; add real favicon later if desired -->
 </head>
 <body>
+  <div id="branding" style="position: fixed; top: 10px; left: 20px; z-index: 15; color: #00FF41; font-family: 'Orbitron', monospace; font-size: 24px; text-shadow: 0 0 20px #00FF41; animation: glow 2s infinite;">
+    Smoke Stream Omnibot 🚬💨
+  </div>
+
+  <!-- Add control buttons -->
+  <div id="controls" style="position: fixed; bottom: 80px; right: 20px; z-index: 15; display: flex; gap: 10px;">
+    <button id="voice-btn" title="Voice Input">🎤</button>
+    <button id="camera-btn" title="Camera">📹</button>
+    <button id="upload-btn" title="Upload File">📎</button>
+  </div>
+
   <div id="scene-container"></div>
   
   <div id="chat-container">
     <div id="chat-messages"></div>
     <div id="input-area">
+      <input type="file" id="file-input" accept="image/*" style="display: none;" />
       <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off" />
       <button id="send-btn">Send</button>
     </div>
@@ -28,16 +41,17 @@
 
   <!-- Cross-Origin Isolation for SharedArrayBuffer / web-llm -->
   <script>
+    // Add event listeners
+    document.getElementById('voice-btn').addEventListener('click', toggleVoice);
+    document.getElementById('camera-btn').addEventListener('click', toggleCamera);
+    document.getElementById('upload-btn').addEventListener('click', () => document.getElementById('file-input').click());
+    document.getElementById('file-input').addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach(handleFileUpload);
+    });
+
+    // PWA
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/coi-serviceworker.js')
-          .then(reg => {
-            console.log('Cross-Origin Isolation Service Worker registered');
-          })
-          .catch(err => {
-            console.error('Service Worker registration failed:', err);
-          });
-      });
+      navigator.serviceWorker.register('/coi-serviceworker.js');
     }
   </script>
 
@@ -54,5 +68,17 @@
       </div>
     </div>
   </noscript>
+
+  <style>
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 20px #00FF41; }
+      50% { text-shadow: 0 0 40px #8B00FF, 0 0 60px #00FF41; }
+    }
+
+    @media (max-width: 768px) {
+      #branding { font-size: 18px; left: 10px; }
+      #controls { bottom: 100px; right: 10px; flex-wrap: wrap; }
+    }
+  </style>
 </body>
 </html>

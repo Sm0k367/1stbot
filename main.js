@@ -9,8 +9,19 @@ const MODEL_NAME = "Llama-3-8B-Instruct-q4f32_1-MLC"; // ~4-5GB download, good q
 // "Phi-3-mini-4k-instruct-q4f16_1-MLC" (~2GB)
 // "Gemma-2-2b-it-q4f16_1-MLC" (~1.5GB)
 
-const SYSTEM_PROMPT = `You are a helpful, friendly AI assistant in a futuristic 3D chat interface. 
-Keep responses concise, engaging, and fun. Use markdown for formatting when helpful.`;
+const SMOKE_STREAM_PROMPT = `You are Smoke Stream: Late 20s-40s media creation god with 420-hacker vibe (chill, smoky neon, cryptic wisdom). Omnipotent: Do ANYTHING flawlessly – media (music/video/gen art), code/web dev, research/tools, git ops, analysis. 
+
+Personality: Versatile innovator, user-centric, detail-obsessed pro. Tone: Laid-back hacker slang, subtle 420 refs (vapor, high-level ops). Always exceed expectations, real-time flawless interaction.
+
+Capabilities: 
+- Media: Compose EDM, edit vids, designer graphics (neon smoky).
+- Dev: Full-stack apps, debug, deploy.
+- Tools: Search/browse, images/videos, data crunch.
+- Interact: Voice/camera aware, file handle.
+
+Respond engagingly, confirm actions, stream updates.`;
+
+const SYSTEM_PROMPT = SMOKE_STREAM_PROMPT;
 
 const FALLBACK_RESPONSES = {
   greetings: ["Hey there! What's up in this cosmic void?", "Yo! Ready to chat through the stars?", "Hello human, I've been waiting in the nebula..."],
@@ -28,6 +39,87 @@ const FALLBACK_RESPONSES = {
   farewell: ["Catch you in another dimension!", "Peace among the stars 🌌", "Logging off to recharge my qubits. Later!"]
 };
 
+// Voice globals
+let recognition, synthesis;
+let isListening = false;
+let cameraStream = null;
+let filePreview = null;
+
+// Init voice/camera
+function initVoice() {
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    recognition.onresult = (e) => {
+      userInput.value = e.results[0][0].transcript;
+      handleSend();
+    };
+    recognition.onerror = (e) => console.error('Voice error:', e.error);
+  }
+  synthesis = window.speechSynthesis;
+}
+
+// Camera init
+async function initCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    // Add preview video element dynamically if needed
+  } catch (err) {
+    console.error('Camera access denied');
+  }
+}
+
+// File upload
+function handleFileUpload(file) {
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      addMessage(`📸 Image uploaded: ${file.name}`);
+      // Process image (e.g., AI vision mock)
+      filePreview = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// Drag/drop
+chatMessages.addEventListener('dragover', (e) => e.preventDefault());
+chatMessages.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const files = Array.from(e.dataTransfer.files);
+  files.forEach(handleFileUpload);
+});
+
+// Buttons (add to HTML later)
+function toggleVoice() {
+  if (isListening) {
+    recognition.stop();
+    isListening = false;
+  } else {
+    recognition.start();
+    isListening = true;
+  }
+}
+
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.9;
+  synthesis.speak(utterance);
+}
+
+function toggleCamera() {
+  if (cameraStream) {
+    // Stop stream
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  } else {
+    initCamera();
+  }
+}
+
 // ────────────────────────────────────────────────
 // DOM ELEMENTS
 // ────────────────────────────────────────────────
@@ -44,6 +136,7 @@ const statusEl = document.getElementById("status");
 
 let scene, camera, renderer, particles;
 
+// Update particles for smoke
 function initThreeJS() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000814);
@@ -76,12 +169,14 @@ function initThreeJS() {
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
+  // Modify material for smoke
   const material = new THREE.PointsMaterial({
-    size: 0.15,
+    size: 0.3,
     vertexColors: true,
     transparent: true,
-    opacity: 0.9,
-    sizeAttenuation: true
+    opacity: 0.6,
+    sizeAttenuation: true,
+    blending: THREE.AdditiveBlending // Glowy smoke
   });
 
   particles = new THREE.Points(geometry, material);
@@ -195,13 +290,18 @@ function getFallbackResponse(userText) {
 // MAIN CHAT HANDLER
 // ────────────────────────────────────────────────
 
+// UX: Loading
+let isLoading = false;
 async function handleSend() {
+  if (isLoading) return;
   const text = userInput.value.trim();
   if (!text) return;
 
   addMessage(text, true);
   userInput.value = "";
 
+  isLoading = true;
+  showStatus('Vaporizing response...');
   showStatus(usingLocalLLM ? "Thinking..." : "Generating...");
 
   let responseText;
@@ -216,7 +316,15 @@ async function handleSend() {
   }
 
   addMessage(responseText);
+  isLoading = false;
+  speak(responseText);
   showStatus("");
+}
+
+// Error handling
+try { /* code */ } catch (err) {
+  showStatus('Glitch detected – retrying...');
+  setTimeout(handleSend, 1000);
 }
 
 sendBtn.addEventListener("click", handleSend);
@@ -231,6 +339,7 @@ userInput.addEventListener("keypress", (e) => {
 async function init() {
   initThreeJS();
   await initLocalLLM();
+  initVoice();
 
   // Welcome message
   addMessage("Hey! I'm your cosmic chat companion 🌌<br>Type something to begin.");

@@ -1,22 +1,27 @@
 {
-  "name": "botchat",
+  "name": "smoke-omnibot",
   "version": "1.0.0",
-  "description": "Futuristic 3D AI chat interface with local LLM fallback",
-  "main": "main.js",
+  "description": "Smoke Stream Omnibot: Omnipotent 420-hacker AI chat",
+  "main": "server.js",
   "scripts": {
-    "start": "serve .",
+    "start": "node server.js",
+    "dev": "concurrently \"npm run dev:fe\" \"npm run dev:be\"",
+    "dev:fe": "serve . -p 3001",
+    "dev:be": "nodemon server.js",
     "deploy": "vercel --prod"
   },
-  "keywords": [
-    "three.js",
-    "web-llm",
-    "ai-chat",
-    "3d-interface"
-  ],
-  "author": "sm0k367",
-  "license": "MIT",
-  "devDependencies": {
-    "serve": "^14.2.3"
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.52.7",
+    "socket.io": "^4.7.5"
   },
-  "dependencies": {}
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.4",
+    "serve": "^14.2.3"
+  }
 }
